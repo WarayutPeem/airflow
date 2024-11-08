@@ -1,25 +1,22 @@
-from config.source_data_full import get_object_by_table_full
-from config.source_data_incremental import get_object_by_table_incremental
+from config.source_data_cdp import get_object_table
 
 from sqlalchemy import create_engine, text
-from avro.datafile import DataFileWriter
-from avro.io import DatumWriter
-import json, avro
 import urllib.parse
-import pandas as pd
 
 constr_ok_etl ='oracle+cx_oracle://conetl:X1npr0et1@10.0.0.111:1521/OK'
 constr_sale_etl = f'oracle+cx_oracle://conetl:{urllib.parse.quote('Pr0s@leet1')}@10.0.0.72:1521/SALE'
 
-def create_object_value(asatdate, table_name, database_name, extenion_file, type_process):
-    file_name = f"{table_name}" if table_name != 'sysbytedes' else f"{database_name}_{table_name}"
+def create_object_value(asatdate, date_str, table_name, database_name, extenion_file, type_process):
     path_file = f'./{extenion_file}/{table_name}/ASATDATE={asatdate}'
 
+    file_name = ''
     destination_blob = ''
     if type_process.lower() == 'full':
+        file_name = f"{table_name}" if table_name != 'sysbytedes' else f"{database_name}_{table_name}"
         destination_blob = f"{table_name}/{file_name}.{extenion_file}"
 
     elif type_process.lower() == 'incremental':
+        file_name = f"{table_name}_{date_str}"
         destination_blob = f"{table_name}/ASATDATE={asatdate}/{file_name}.{extenion_file}"
 
     return file_name, path_file, destination_blob
@@ -96,31 +93,6 @@ def create_object_return(database, table_name, obj_table):
     return database, query, schema, field_action, object_for_update
 
 
-def create_file_table_name(df, schema, path_file, file_name, extenion_file):
-    # Convert DataFrame to records
-    schema_parsed = avro.schema.parse(json.dumps(schema))
-
-    # Write to files avro
-    dict_df = df.to_dict(orient="records")
-    with open(f'{path_file}/{file_name}.{extenion_file}', 'wb') as f:
-        writer = DataFileWriter(f, DatumWriter(), schema_parsed)
-        [writer.append(row) for row in dict_df]
-        writer.close()
-
-    # clean data after done process
-    df = pd.DataFrame()
-    dict_df = []
-
-    return f'{path_file}/{file_name}.{extenion_file}'
-
-
-def create_df(database, query):
-    df = pd.read_sql(query, database, coerce_float=False)
-    df = df.rename(columns={col: col.lower() for col in df.columns})
-    
-    return df
-
-
 def get_object_table_name(database_name, table_name, type_process, from_date, to_date):
     database = ''
     if database_name.lower().strip() == 'ok':
@@ -130,11 +102,7 @@ def get_object_table_name(database_name, table_name, type_process, from_date, to
         database = constr_sale_etl
 
     # get object with table name
-    if type_process == 'full':
-        obj_table = get_object_by_table_full(table_name)
-
-    else:
-        obj_table = get_object_by_table_incremental(table_name)
+    obj_table = get_object_table(table_name, from_date, to_date)
 
     # create other object from obj_table
     object_return = create_object_return(database, table_name, obj_table)

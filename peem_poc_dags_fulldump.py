@@ -59,7 +59,7 @@ object_process = [
     }
 ]
 
-# ### START PROCESS
+# START PROCESS
 # get value from environment variables
 for obj_process in object_process:
     database_name = obj_process["database_name"].lower().strip()

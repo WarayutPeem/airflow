@@ -13,10 +13,7 @@ import datetime as dt
 type_process = 'incremental'
 extenion_file = 'arvo'
 chunk_size = 500
-date_str = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%Y%m%d")
-asatdate = str(dt.datetime.now().date() - dt.timedelta(days=1))
-from_date = str(dt.datetime.now().date() - dt.timedelta(days=1))
-to_date = str(dt.datetime.now().date())
+
 
 # variable for gcp
 gcs_json = './key/tqm-cdp-beta-d12083c2d017.json'
@@ -75,7 +72,7 @@ object_process = [
     }
 ]
 
-# ### START PROCESS
+# START PROCESS
 # get value from environment variables
 for obj_process in object_process:
     database_name = obj_process["database_name"].lower().strip()
