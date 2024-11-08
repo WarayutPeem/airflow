@@ -81,10 +81,11 @@ for obj_process in object_process:
         df = clean_fix_type_data(df, obj_table[2], obj_table[3], key)
         
         # create file for upload to GCS
-        create_file_table_name(df, obj_table[2], path_file, file_name, extenion_file)
+        path_file_table = create_file_table_name(df, obj_table[2], path_file, file_name, extenion_file)
         
         # Upload file avro to GCS
-        upload_to_gcs(gcs_json, bucket_name, path_file, file_name, table_name)
+        destination_blob = f"{table_name}/ASATDATE={asatdate}/{file_name}.{extenion_file}"
+        upload_to_gcs(gcs_json, bucket_name, destination_blob, path_file_table)
             
         # clean data for dataframe
         df = pd.DataFrame
