@@ -10,7 +10,7 @@ import datetime as dt
 
 # MAIN PROCESS
 # variable default value
-type_process = 'full'
+type_process = 'incremental'
 extenion_file = 'arvo'
 chunk_size = 500
 date_str = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%Y%m%d")
@@ -38,23 +38,39 @@ object_process = [
     {
         "database_name" : 'OK',
         "list_table" : [
-            'supplier'
-            , 'product'
-            , 'promotion'
-            , 'receivecost'
-            , 'result'
-            , 'sysbytedes'
+            'receiveitemclear'
+            , 'sale'
+            , 'saleaction'
+            , 'saledata'
+            , 'saleaddress'
+            , 'salepayment'
+            , 'customer'
+            , 'customersale'
+            , 'renewalnotice'
+            , 'mapmembershipcust'
         ]
     },
     {
         "database_name" : 'SALE',
         "list_table" : [
-            'staff'
-            , 'department'
-            , 'departmenttree'
-            , 'batchcodeassigninfo'
-            , 'chatsurvey'
-            , 'sysbytedes'
+            'leadassign'
+            , 'leadcar'
+            , 'lead'
+            , 'leadaction'
+            , 'leaddata'
+            , 'leadtrack'
+            , 'leadchatclient'
+            , 'smsitem'
+            , 'tqmappuser'
+            , 'tqmappnoti'
+            , 'web30tempsale'
+            , 'chatcenter'
+            , 'lineitem'
+            , 'chatsurveyanswer'
+            , 'membership'
+            , 'membersale'
+            , 'consent'
+            , 'ecommsale'
         ]        
     }
 ]
@@ -86,6 +102,9 @@ for obj_process in object_process:
 
         # Upload file avro to GCS
         upload_to_gcs(gcs_json, bucket_name, object_value[3], path_file_table)
+
+        # Update data on etlchangedata
+        update_table_control(obj_table[0], df, from_date, to_date, obj_table[4], chunk_size)
 
         # clean data for dataframe
         df = pd.DataFrame
