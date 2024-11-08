@@ -1,5 +1,7 @@
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from gcp_control import *
 
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+import re
 
 def to_decimal(value):
     try:
@@ -23,12 +25,12 @@ def is_valid_date_format(date_string):
     
     
 def format_column_date(date_string):
-    if date_string != None and is_valid_date_format(date_string):
+    if date_string is not None and is_valid_date_format(date_string):
         return date_string[:10]
     
     
 def format_column_datetime(date_string):
-    if date_string != None and is_valid_date_format(date_string):
+    if date_string is not None and is_valid_date_format(date_string):
         if len(date_string) == 19:
             return date_string
         else:

@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine, text
 from avro.datafile import DataFileWriter
 from avro.io import DatumWriter
-from dotenv import load_dotenv
-import os, json, avro
+import json, avro
 import pandas as pd
+import urllib.parse
 
-load_dotenv()
-
+constr_ok_etl ='oracle+cx_oracle://conetl:X1npr0et1@10.0.0.111:1521/OK'
+constr_sale_etl = f'oracle+cx_oracle://conetl:{urllib.parse.quote('Pr0s@leet1')}@10.0.0.72:1521/SALE'
 
 def create_object_return(database, table_name, obj_table):
     # create variable for process
@@ -79,16 +79,41 @@ def create_object_return(database, table_name, obj_table):
     return database, query, schema, field_action, object_for_update
 
 
+def create_file_table_name(df, schema, path_file, file_name, extenion_file):
+    # Convert DataFrame to records
+    schema_parsed = avro.schema.parse(json.dumps(schema))
+
+    # Write to files avro
+    dict_df = df.to_dict(orient="records")
+    with open(f'{path_file}/{file_name}.{extenion_file}', 'wb') as f:
+        writer = DataFileWriter(f, DatumWriter(), schema_parsed)
+        [writer.append(row) for row in dict_df]
+        writer.close()
+
+    # clean data after done process
+    df = pd.DataFrame()
+    dict_df = []
+
+    return f'{path_file}/{file_name}.{extenion_file}'
+
+
+def create_df(database, query):
+    df = pd.read_sql(query, database, coerce_float=False)
+    df = df.rename(columns={col: col.lower() for col in df.columns})
+    
+    return df
+
+
 def get_object_table_name(database_name, table_name, from_date, to_date):
     if database_name.lower().strip() == 'ok':
-        database = os.getenv('constr_ok_etl')
-        
+        database = constr_ok_etl
+
     elif database_name.lower().strip() == 'sale':
-        database = os.getenv('constr_sale_etl')
-    
+        database = constr_sale_etl
+
     # START Create object table per table
     object_all_table = {
-        
+
         # table_name : supplier
         "supplier": {
             "select": """
@@ -99,7 +124,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : product
         "product": {
             "select": """
@@ -114,7 +139,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : promotion
         "promotion": {
             "select": """
@@ -132,7 +157,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : receivecost
         "receivecost": {
             "select": """           
@@ -141,10 +166,10 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
             """,
             "from": "etl.view_receivecost",
             "field_action": {
-                "field_encrypt": {}           
+                "field_encrypt": {}
             }
         },
-        
+
         # table_name : result
         "result": {
             "select": """
@@ -155,7 +180,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : staff
         "staff": {
             "select": """
@@ -167,7 +192,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : department
         "department": {
             "select": """
@@ -179,7 +204,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : departmenttree
         "departmenttree": {
             "select": """
@@ -191,7 +216,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : batchcodeassigninfo
         "batchcodeassigninfo": {
             "select": """
@@ -199,10 +224,10 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
             """,
             "from": "etl.view_batchcodeassigninfo",
             "field_action": {
-                "field_encrypt": {}        
+                "field_encrypt": {}
             }
         },
-        
+
         # table_name : chatsurvey
         "chatsurvey": {
             "select": """
@@ -214,7 +239,7 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
         # table_name : sysbytedes
         "sysbytedes": {
             "select": """
@@ -225,42 +250,17 @@ def get_object_table_name(database_name, table_name, from_date, to_date):
                 "field_encrypt": {}
             }
         },
-        
+
     }
-    
+
     # get object with table name
     obj_table = object_all_table.get(table_name)
-    
+
     # create other object from obj_table
     object_return = create_object_return(database, table_name, obj_table)
-    
+
     if object_return:
         return object_return
-    
+
     else:
         return None
-
-
-def create_file_table_name(df, schema, path_file, file_name):
-    # Convert DataFrame to records
-    schema_parsed = avro.schema.parse(json.dumps(schema))
-
-    # Write to files avro
-    dict_df = df.to_dict(orient="records")
-    with open(f'{path_file}/{file_name}.avro', 'wb') as f:
-        writer = DataFileWriter(f, DatumWriter(), schema_parsed)
-        [writer.append(row) for row in dict_df]
-        writer.close()
-        
-    # clean data after done process
-    df = pd.DataFrame()
-    dict_df = []
-    
-    return f'{path_file}/{file_name}.avro'
-
-
-def create_df(database, query):
-    df = pd.read_sql(query, database, coerce_float=False)
-    df = df.rename(columns={col: col.lower() for col in df.columns})
-    
-    return df

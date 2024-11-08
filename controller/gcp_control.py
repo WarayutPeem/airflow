@@ -1,13 +1,13 @@
 from tink import daead, secret_key_access
 from google.cloud import storage
-import json, tink, base64, re
+import json, tink, base64
 import pandas as pd
 
 
 def set_up_key(key_json):
-    keyset = ""
     with open(key_json) as fp:
         keyset = json.dumps(json.load(fp))
+
     keyset_handle = tink.json_proto_keyset_format.parse(keyset, secret_key_access.TOKEN)
     daead.register()
     
@@ -42,7 +42,7 @@ def decrypt_cols_in_df(df, columns, key):
     return df_copy
 
 
-def upload_to_gcs(gcs_json, destination_blob_name, bucket_name, path_file_table, file_name, extenion_file, table_name):
+def upload_to_gcs(gcs_json, destination_blob, bucket_name, path_file_table):
     # File detail
     # destination_blob_name = f"{table_name}/ASATDATE={asatdate}/{file_name}.{extenion_file}"
     
@@ -53,7 +53,7 @@ def upload_to_gcs(gcs_json, destination_blob_name, bucket_name, path_file_table,
     bucket = storage_client.bucket(bucket_name)
 
     # Create a blob object from the filename
-    blob = bucket.blob(destination_blob_name)
+    blob = bucket.blob(destination_blob)
 
     # Upload the file to GCS
     blob.upload_from_filename(path_file_table, timeout=1800)
@@ -61,4 +61,4 @@ def upload_to_gcs(gcs_json, destination_blob_name, bucket_name, path_file_table,
     # Close the connection
     storage_client.close()
 
-    print(f"File {path_file_table} uploaded to {destination_blob_name}.")
+    print(f"File {path_file_table} uploaded to {destination_blob}.")
