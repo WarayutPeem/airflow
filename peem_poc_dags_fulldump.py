@@ -88,4 +88,4 @@ for obj_process in object_process:
         upload_to_gcs(gcs_json, bucket_name, object_value[3], path_file_table)
 
         # clean data for dataframe
-        # df = pd.DataFrame
+        df = pd.DataFrame
