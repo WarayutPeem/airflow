@@ -76,7 +76,7 @@ for obj_process in object_process:
         if_exists_folder(obj_table[2])
 
         # create dataframe from query
-        # df = create_df(obj_table[0], obj_table[1])
+        df = create_df(obj_table[0], obj_table[1])
 
         # clean data
         df = clean_fix_type_data(df, obj_table[2], obj_table[3], key)
