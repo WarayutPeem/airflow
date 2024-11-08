@@ -1,4 +1,4 @@
-from gcp_control import *
+from controller.gcp_control import *
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import re

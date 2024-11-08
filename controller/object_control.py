@@ -2,11 +2,25 @@ from sqlalchemy import create_engine, text
 from avro.datafile import DataFileWriter
 from avro.io import DatumWriter
 import json, avro
-import pandas as pd
 import urllib.parse
+import pandas as pd
 
 constr_ok_etl ='oracle+cx_oracle://conetl:X1npr0et1@10.0.0.111:1521/OK'
 constr_sale_etl = f'oracle+cx_oracle://conetl:{urllib.parse.quote('Pr0s@leet1')}@10.0.0.72:1521/SALE'
+
+def create_object_value(asatdate, table_name, database_name, extenion_file, type_process):
+    file_name = f"{table_name}" if table_name != 'sysbytedes' else f"{database_name}_{table_name}"
+    path_file = f'./{extenion_file}/{table_name}/ASATDATE={asatdate}'
+
+    destination_blob = ''
+    if type_process.lower() == 'full':
+        destination_blob = f"{table_name}/{file_name}.{extenion_file}"
+
+    elif type_process.lower() == 'incremental':
+        destination_blob = f"{table_name}/ASATDATE={asatdate}/{file_name}.{extenion_file}"
+
+    return file_name, path_file, destination_blob
+
 
 def create_object_return(database, table_name, obj_table):
     # create variable for process
@@ -105,6 +119,7 @@ def create_df(database, query):
 
 
 def get_object_table_name(database_name, table_name, from_date, to_date):
+    database = ''
     if database_name.lower().strip() == 'ok':
         database = constr_ok_etl
 

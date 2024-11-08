@@ -43,9 +43,6 @@ def decrypt_cols_in_df(df, columns, key):
 
 
 def upload_to_gcs(gcs_json, bucket_name, destination_blob, path_file_table):
-    # File detail
-    # destination_blob_name = f"{table_name}/ASATDATE={asatdate}/{file_name}.{extenion_file}"
-    
     # connect to GCS
     storage_client = storage.Client.from_service_account_json(gcs_json)
 
